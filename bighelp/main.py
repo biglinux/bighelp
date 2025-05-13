@@ -4,7 +4,7 @@ Main entry point for the BigHelp application.
 """
 
 import sys
-from bighelp.ui import BigHelpApp
+from ui import BigHelpApp
 
 
 def main():

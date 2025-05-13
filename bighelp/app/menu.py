@@ -4,16 +4,16 @@ Menu components for BigHelp application.
 This module contains all the menu interfaces used in the application.
 """
 
-from textual.widgets import Button, Static, VerticalScroll, Markdown
-from textual.containers import Container, Vertical, Horizontal
+from textual.widgets import Button, Static
+from textual.containers import Container, Vertical, Horizontal, VerticalScroll
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.app import ComposeResult
 from textual import events
 from typing import Optional
 
-from bighelp.tutorials import ALL_TUTORIALS
-from bighelp.app.actions import AppActions
+from tutorials import ALL_TUTORIALS
+from app.actions import AppActions
 
 
 class MainMenu(Vertical):
@@ -50,7 +50,10 @@ class TutorialMenu(Screen):
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
-        Binding("q", "quit", "Quit")
+        Binding("q", "quit", "Quit"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def compose(self) -> ComposeResult:
@@ -64,6 +67,12 @@ class TutorialMenu(Screen):
             classes="tutorial-menu"
         )
     
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
+    
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle tutorial category selection."""
         if event.button.id == "back":
@@ -75,13 +84,22 @@ class TutorialMenu(Screen):
         """Go back to the previous screen."""
         self.app.pop_screen()
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class CommandListScreen(Screen):
     """Screen showing all commands in a category."""
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
-        Binding("q", "quit", "Quit")
+        Binding("q", "quit", "Quit"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def __init__(self, category: str) -> None:
@@ -108,6 +126,12 @@ class CommandListScreen(Screen):
             )
         )
     
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
+    
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle command selection."""
         if event.button.id == "back":
@@ -120,6 +144,12 @@ class CommandListScreen(Screen):
         """Go back to the previous screen."""
         self.app.pop_screen()
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class CommandDetailView(Screen):
     """Detailed view of a specific command with examples."""
@@ -127,7 +157,10 @@ class CommandDetailView(Screen):
     BINDINGS = [
         Binding("escape", "back", "Back"),
         Binding("q", "quit", "Quit"),
-        Binding("t", "try_command", "Try Command")
+        Binding("t", "try_command", "Try Command"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def __init__(self, category: str, command: str) -> None:
@@ -138,36 +171,39 @@ class CommandDetailView(Screen):
     
     def compose(self) -> ComposeResult:
         """Create the command detail layout."""
-        # Build the content markdown
-        content = f"""
-# 🚀 {self.command_info['name']}
-
-## Description
-{self.command_info['description']}
-
-## What does it do?
-{self.command_info['explanation']}
-
-## Examples:
-"""
+        # Build content using Rich markup instead of Markdown
+        content_widgets = [
+            Static(f"[bold blue]🚀 {self.command_info['name']}[/bold blue]", classes="command-title"),
+            Static("", classes="spacer"),
+            Static("[bold green]Description:[/bold green]", classes="section-title"),
+            Static(self.command_info['description'], classes="description"),
+            Static("", classes="spacer"),
+            Static("[bold green]What does it do?[/bold green]", classes="section-title"),
+            Static(self.command_info['explanation'], classes="explanation"),
+            Static("", classes="spacer"),
+            Static("[bold green]Examples:[/bold green]", classes="section-title"),
+        ]
         
+        # Add examples
         for example in self.command_info['examples']:
-            content += f"""
-### `{example['command']}`
-{example['explanation']}
-"""
+            content_widgets.extend([
+                Static(f"[bold yellow]`{example['command']}`[/bold yellow]", classes="example-command"),
+                Static(example['explanation'], classes="example-explanation"),
+                Static("", classes="spacer"),
+            ])
         
-        content += f"""
-## 💡 Tip
-{self.command_info['tip']}
-
-## ⚠️ Safety Note
-{self.command_info['safety']}
-"""
+        # Add tip and safety note
+        content_widgets.extend([
+            Static("[bold blue]💡 Tip:[/bold blue]", classes="section-title"),
+            Static(self.command_info['tip'], classes="tip"),
+            Static("", classes="spacer"),
+            Static("[bold red]⚠️ Safety Note:[/bold red]", classes="section-title"),
+            Static(self.command_info['safety'], classes="safety"),
+        ])
         
         yield Container(
             VerticalScroll(
-                Markdown(content),
+                *content_widgets,
                 classes="command-detail"
             ),
             Horizontal(
@@ -176,6 +212,12 @@ class CommandDetailView(Screen):
                 classes="action-buttons"
             )
         )
+    
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
@@ -192,13 +234,22 @@ class CommandDetailView(Screen):
         """Open the interactive terminal to try the command."""
         self.app.push_screen(InteractiveTerminal(self.command_info))
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class InteractiveTerminal(Screen):
     """Interactive terminal for trying commands safely."""
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
-        Binding("q", "quit", "Quit")
+        Binding("q", "quit", "Quit"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def __init__(self, command_info: dict) -> None:
@@ -220,6 +271,12 @@ class InteractiveTerminal(Screen):
             ),
             Static("", id="output", classes="terminal-output")
         )
+    
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle example selection."""
@@ -259,12 +316,21 @@ class InteractiveTerminal(Screen):
         """Go back to the previous screen."""
         self.app.pop_screen()
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class NetworkActionsScreen(Screen):
     """Screen for network-related actions."""
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def compose(self) -> ComposeResult:
@@ -277,6 +343,12 @@ class NetworkActionsScreen(Screen):
             Button("🔙 Back", id="back", variant="warning"),
             Static("", id="result", classes="result-display")
         )
+    
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle network action buttons."""
@@ -293,12 +365,21 @@ class NetworkActionsScreen(Screen):
         """Go back to the previous screen."""
         self.app.pop_screen()
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class PackageActionsScreen(Screen):
     """Screen for package management actions."""
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def compose(self) -> ComposeResult:
@@ -312,6 +393,12 @@ class PackageActionsScreen(Screen):
             Button("🔙 Back", id="back", variant="warning"),
             Static("", id="result", classes="result-display")
         )
+    
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle package management buttons."""
@@ -328,12 +415,21 @@ class PackageActionsScreen(Screen):
         """Go back to the previous screen."""
         self.app.pop_screen()
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class SystemActionsScreen(Screen):
     """Screen for system-related actions."""
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
+        Binding("up", "focus_previous", "Previous", show=False),
+        Binding("down", "focus_next", "Next", show=False),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def compose(self) -> ComposeResult:
@@ -346,6 +442,12 @@ class SystemActionsScreen(Screen):
             Button("🔙 Back", id="back", variant="warning"),
             Static("", id="result", classes="result-display")
         )
+    
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle system action buttons."""
@@ -362,53 +464,66 @@ class SystemActionsScreen(Screen):
         """Go back to the previous screen."""
         self.app.pop_screen()
 
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()
+
 
 class AboutScreen(Screen):
     """About screen with information about BigHelp."""
     
     BINDINGS = [
         Binding("escape", "back", "Back"),
+        Binding("enter", "select", "Select", show=False),
     ]
     
     def compose(self) -> ComposeResult:
         """Create about screen layout."""
-        about_text = """
-# 🚀 BigHelp - Learn Linux Terminal!
-
-## What is BigHelp?
-BigHelp is a friendly tool designed to help kids learn the Linux terminal. 
-It makes learning commands fun and safe!
-
-## Version
-0.1.0
-
-## Features
-- 📚 Interactive tutorials for Linux commands
-- 🛡️ Safe learning environment  
-- 🎮 Easy-to-use interface with mouse support
-- 👶 Designed for beginners and kids
-
-## How to Use
-1. Click on "Learn Terminal Commands" to start
-2. Choose a category (Basic, Network, or System)
-3. Pick a command to learn about
-4. Try it out safely!
-
-## Tips for Learning
-- Take your time
-- Try the examples
-- Don't be afraid to explore
-- Ask for help when needed
-
-Made with ❤️ for young Linux learners!
-"""
+        about_widgets = [
+            Static("[bold blue]🚀 BigHelp - Learn Linux Terminal![/bold blue]", classes="about-title"),
+            Static("", classes="spacer"),
+            Static("[bold green]What is BigHelp?[/bold green]", classes="section-title"),
+            Static("BigHelp is a friendly tool designed to help users learn the Linux terminal.\nIt makes learning commands fun and safe!", classes="about-text"),
+            Static("", classes="spacer"),
+            Static("[bold green]Version[/bold green]", classes="section-title"),
+            Static("0.1.0", classes="about-text"),
+            Static("", classes="spacer"),
+            Static("[bold green]Features[/bold green]", classes="section-title"),
+            Static("• 📚 Interactive tutorials for Linux commands", classes="feature-item"),
+            Static("• 🛡️ Safe learning environment", classes="feature-item"),
+            Static("• 🎮 Easy-to-use interface with mouse support", classes="feature-item"),
+            Static("• 🎯 Designed for beginners", classes="feature-item"),
+            Static("", classes="spacer"),
+            Static("[bold green]How to Use[/bold green]", classes="section-title"),
+            Static("1. Click on 'Learn Terminal Commands' to start", classes="instruction"),
+            Static("2. Choose a category (Basic, Network, or System)", classes="instruction"),
+            Static("3. Pick a command to learn about", classes="instruction"),
+            Static("4. Try it out safely!", classes="instruction"),
+            Static("", classes="spacer"),
+            Static("[bold green]Tips for Learning[/bold green]", classes="section-title"),
+            Static("• Take your time", classes="tip"),
+            Static("• Try the examples", classes="tip"),
+            Static("• Don't be afraid to explore", classes="tip"),
+            Static("• Ask for help when needed", classes="tip"),
+            Static("", classes="spacer"),
+            Static("[bold red]Made with ❤️ for Linux learners![/bold red]", classes="footer"),
+        ]
+        
         yield Container(
             VerticalScroll(
-                Markdown(about_text),
+                *about_widgets,
                 classes="about-content"
             ),
             Button("🔙 Back to Main Menu", id="back", variant="primary")
         )
+    
+    def on_mount(self) -> None:
+        """Set focus when screen mounts."""
+        buttons = self.query("Button")
+        if buttons:
+            buttons[0].focus()
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle back button."""
@@ -418,3 +533,9 @@ Made with ❤️ for young Linux learners!
     def action_back(self) -> None:
         """Go back to the previous screen."""
         self.app.pop_screen()
+
+    def action_select(self) -> None:
+        """Press the currently focused button."""
+        focused = self.query("Button:focus")
+        if focused:
+            focused[0].press()

@@ -6,7 +6,7 @@ This module contains the business logic for various actions that can be performe
 
 import subprocess
 from textual.widgets import Static
-from bighelp.utils import run_command, get_system_info, is_command_available
+from utils import run_command, get_system_info, is_command_available
 
 
 class AppActions:
