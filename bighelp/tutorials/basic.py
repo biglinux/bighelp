@@ -30,13 +30,13 @@ BASIC_COMMANDS = {
         "tip": "Try 'ls -la' to see everything with details!",
         "safety": "This command only looks at files - it doesn't change anything."
     },
-    
+
     "cd": {
         "name": "cd",
         "category": "File and Directory Commands",
         "description": "Change directory - move to a different folder",
         "explanation": """
-        The 'cd' command helps you move around folders, like walking to different rooms 
+        The 'cd' command helps you move around folders, like walking to different rooms
         in your house! Each folder is like a room with different things inside.
         """,
         "examples": [
@@ -60,7 +60,7 @@ BASIC_COMMANDS = {
         "tip": "Always remember: '..' means 'go back one folder'",
         "safety": "This command only moves you around - it doesn't delete anything."
     },
-    
+
     "pwd": {
         "name": "pwd",
         "category": "File and Directory Commands",
@@ -78,7 +78,7 @@ BASIC_COMMANDS = {
         "tip": "Use this command when you get lost in folders!",
         "safety": "This command only shows information - it's completely safe."
     },
-    
+
     "mkdir": {
         "name": "mkdir",
         "category": "File and Directory Commands",
@@ -104,7 +104,7 @@ BASIC_COMMANDS = {
         "tip": "Use -p to create multiple levels of folders at once!",
         "safety": "This creates new folders - it won't overwrite existing ones."
     },
-    
+
     "rmdir": {
         "name": "rmdir",
         "category": "File and Directory Commands",
@@ -122,7 +122,7 @@ BASIC_COMMANDS = {
         "tip": "The folder must be completely empty for this to work!",
         "safety": "BE CAREFUL! This deletes folders, but only empty ones."
     },
-    
+
     "cp": {
         "name": "cp",
         "category": "File and Directory Commands",
@@ -148,7 +148,7 @@ BASIC_COMMANDS = {
         "tip": "Use -r to copy folders and everything inside them!",
         "safety": "This makes copies - the original files stay safe."
     },
-    
+
     "mv": {
         "name": "mv",
         "category": "File and Directory Commands",
@@ -174,7 +174,7 @@ BASIC_COMMANDS = {
         "tip": "mv can both move AND rename - it's like magic!",
         "safety": "BE CAREFUL! This moves files - they might not be in the same place!"
     },
-    
+
     "cat": {
         "name": "cat",
         "category": "File Viewing Commands",
@@ -196,7 +196,7 @@ BASIC_COMMANDS = {
         "tip": "Great for reading small text files quickly!",
         "safety": "This only shows files - it doesn't change them."
     },
-    
+
     "less": {
         "name": "less",
         "category": "File Viewing Commands",
@@ -213,5 +213,36 @@ BASIC_COMMANDS = {
         ],
         "tip": "Use arrows to navigate, 'q' to quit, '/' to search",
         "safety": "This only views files - it's safe to use."
+    },
+
+    "touch": {
+        "name": "touch",
+        "category": "File and Directory Commands",
+        "description": "Create new empty files or update file timestamps",
+        "explanation": """
+        The 'touch' command is like magic fingers that can:
+        1. Create brand new empty files (like getting a new notebook)
+        2. Update the timestamp of existing files (like writing the current date on a file)
+        """,
+        "examples": [
+            {
+                "command": "touch myfile.txt",
+                "explanation": "Create a new empty file called 'myfile.txt'"
+            },
+            {
+                "command": "touch notes.txt homework.pdf",
+                "explanation": "Create multiple files at once"
+            },
+            {
+                "command": "touch existing_file.txt",
+                "explanation": "Update the last modified time of an existing file"
+            },
+            {
+                "command": "touch -t 202401011200 special.txt",
+                "explanation": "Create a file with a specific timestamp (Jan 1, 2024 at noon)"
+            }
+        ],
+        "tip": "Great for quickly creating files before editing them with nano/vim!",
+        "safety": "BE CAREFUL! Won't ask before overwriting existing files with -c flag"
     }
 }
